@@ -1,5 +1,7 @@
 # Video Metadata Tagger
 
+![KDO Video Tagger Logo](logo.png)
+
 This Python script processes videos in a specified directory, extracts metadata (resolution, length, camera type, creation date, and object detection tags), and saves the results to a CSV file. It uses YOLOv8 for object detection and FFmpeg for camera type extraction, optimized for drone footage (e.g., DJI videos) but works with any MP4 files.
 
 ## Features
@@ -44,21 +46,21 @@ This Python script processes videos in a specified directory, extracts metadata 
 
 3. **Clone the Repository**:
    ```bash
-   git clone https://github.com/yourusername/video-metadata-tagger.git
-   cd video-metadata-tagger
+   git clone https://github.com/omrik/kdo-video.git
+   cd kdo-video
    ```
 
 ## Usage
 1. **Prepare Videos**:
-   - Place MP4 videos in a folder (e.g., `/Users/yourusername/Videos/my_videos`).
+   - Place MP4 videos in a folder (e.g., `/path/to/videos`).
    - The script is optimized for DJI drone videos (e.g., `DJI_20240802161422_0005_D.MP4`) but works with any MP4.
 
 2. **Run the Script**:
+   - Specify the video folder as a command-line argument.
    - With `pipx`:
      ```bash
-     /path/to/pipx/venvs/ultralytics/bin/python scanvideo.py /path/to/your/videos
+     ~/.local/pipx/venvs/ultralytics/bin/python scanvideo.py /path/to/your/videos
      ```
-     - Example: `/Users/omri.kedem/.local/pipx/venvs/ultralytics/bin/python scanvideo.py /Users/omri.kedem/Videos/my_videos`
    - With virtual environment:
      ```bash
      source venv/bin/activate
@@ -66,21 +68,50 @@ This Python script processes videos in a specified directory, extracts metadata 
      ```
 
 3. **Output**:
-   - A CSV file (e.g., `Users-yourusername-Videos-my_videos.csv`) is created in the current directory.
+   - A CSV file (e.g., `path-to-your-videos.csv`) is created in the current directory.
    - Columns: `Video`, `Resolution`, `Length (s)`, `Camera Type`, `Date Created`, `Tags`.
-   - Example:
-     ```
-     Video,Resolution,Length (s),Camera Type,Date Created,Tags
-     DJI_20240802161422_0005_D.MP4,3840x2160,60.00,Avata,2024-08-02 16:14:22,person
-     ```
+
+### Usage Examples
+#### Example 1: Process DJI Drone Videos
+Run the script on a folder of DJI videos:
+```bash
+~/.local/pipx/venvs/ultralytics/bin/python scanvideo.py /path/to/drone_footage
+```
+**Output** (`path-to-drone_footage.csv`):
+```
+Video,Resolution,Length (s),Camera Type,Date Created,Tags
+DJI_20240802161422_0005_D.MP4,3840x2160,60.00,Avata,2024-08-02 16:14:22,person,car
+DJI_20240802161503_0006_D.MP4,3840x2160,45.50,Avata,2024-08-02 16:15:03,none
+```
+
+#### Example 2: Process Generic MP4 Videos
+Run on a folder with non-DJI videos:
+```bash
+~/.local/pipx/venvs/ultralytics/bin/python scanvideo.py /path/to/home_videos
+```
+**Output** (`path-to-home_videos.csv`):
+```
+Video,Resolution,Length (s),Camera Type,Date Created,Tags
+family_trip.mp4,1920x1080,120.25,Unknown,2024-07-01 10:30:00,person,dog
+```
+
+#### Example 3: Use a Different YOLO Model
+Edit `scanvideo.py` to use `yolov8s.pt` for better accuracy:
+```python
+model = YOLO("yolov8s.pt")
+```
+Then run:
+```bash
+~/.local/pipx/venvs/ultralytics/bin/python scanvideo.py /path/to/drone_footage
+```
 
 ## Customization
-- **Sampling Rate**: Edit `sample_interval = 10` in `scanvideo.py` to change frame sampling (e.g., `5` for every 5 seconds).
-- **Model**: Replace `yolov8n.pt` with `yolov8s.pt` or a drone-specific model (e.g., VisDrone-trained) for better accuracy:
+- **Sampling Rate**: Edit `sample_interval = 10` to change frame sampling (e.g., `5` for every 5 seconds).
+- **Model**: Use `yolov8s.pt` or a drone-specific model (e.g., VisDrone-trained) for better accuracy:
   ```python
   model = YOLO("yolov8s.pt")
   ```
-- **Output Path**: Modify the script to save CSV elsewhere:
+- **Output Path**: Save CSV elsewhere:
   ```python
   output_file = os.path.join("/desired/output/path", video_dir.replace("/", "-").strip("-") + ".csv")
   ```
@@ -90,9 +121,9 @@ This Python script processes videos in a specified directory, extracts metadata 
   - Ensure all dependencies are injected (`pipx inject ultralytics supervision opencv-python ffmpeg-python`).
 - **Empty CSV**:
   - Verify the video path exists and contains `.MP4` files.
-  - Check if YOLOv8 detects objects; try `yolov8s.pt` for better results.
+  - Try `yolov8s.pt` for better object detection.
 - **Camera Type "Unknown"**:
-  - Run `ffprobe -v quiet -print_format json -show_streams /path/to/video.mp4` to check the `codec_long_name`.
+  - Run `ffprobe -v quiet -print_format json -show_streams /path/to/video.mp4` to check `codec_long_name`.
   - Adjust the script’s `camera_type` parsing if needed.
 - **Slow Processing**:
   - Add frame resizing:
@@ -102,7 +133,7 @@ This Python script processes videos in a specified directory, extracts metadata 
   - Use a GPU-enabled Mac (M1/M2) with `torch` MPS support.
 
 ## Contributing
-Feel free to open issues or pull requests for improvements, such as:
+Open issues or pull requests for improvements, such as:
 - Support for other video formats.
 - Enhanced metadata extraction.
 - Custom YOLO models for specific drone types.
